@@ -29,7 +29,7 @@ post '/rva/?' do
     :last_name => last_name,
     :contact_data => {
       :email_addresses => [
-        { :address => email, :location => 'Home' }
+        { :address => email, :location => 'Work' }
       ]
     }
   
