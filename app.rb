@@ -21,13 +21,12 @@ end
 
 # Receive remote volunteer application
 post '/rva/?' do
-  name = params['name']
+  first_name = params['firstname']
+  last_name = params['lastname']
   email = params['email']
   
-  p name
-  p email
-  
-  person = Highrise::Person.create :name => name,
+  person = Highrise::Person.create :first_name => first_name,
+    :last_name => last_name,
     :contact_data => {
       :email_addresses => [
         { :address => email, :location => 'Home' }
