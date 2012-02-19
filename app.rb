@@ -25,6 +25,13 @@ post '/rva/?' do
   first_name = params['firstname']
   last_name = params['lastname']
   email = params['email']
+  age = params['age']
+  address = params['address']
+  skate = params['skate']
+  interested = params['intersted']
+  help = params['help']
+  hours = params['hours']
+  months = params['months']
   
   person = Highrise::Person.create :first_name => first_name, :last_name => last_name,
     :contact_data => {
@@ -32,12 +39,20 @@ post '/rva/?' do
         { :address => email, :location => 'Home' }
       ]
     }
-  person.tag! "applicant"
+  person.tag! "remote applicant"
+  
+  note = "Remote Volunteer Application: \n\n ..."
+  note += "Address:\n#{address}\n\n"
+  note += "Age: #{age}\n\n"
+  note += "Are you a skateboarder? #{skate}\n\n"
+  note += "Why are you interested in the Skateistan project?\n#{interested}\n\n"
+  note += "How could you help Skateistan from your current location?\n#{help}\n\n"
+  note += "How many hours a week could you to dedicate to a remote volunteer position?\n#{hours}\n\n"
+  note += "How many months could you potentially dedicate to a remote volunteer position?\n#{months}\n"
 
-  person.add_note :body => "Remote Volunteer Application: \n\n ..."
+  person.add_note :body => note
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
   body "#{HIGHRISE_URL}/people/#{person.id}"
-  
 end
