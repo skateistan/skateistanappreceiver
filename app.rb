@@ -37,5 +37,7 @@ post '/rva/?' do
   # Email whoever...
   
   # TODO: Add a note with the full contents of the application
+  status 201
+  body "#{HIGHRISE_URL}/people/#{person.id}"
   
 end
