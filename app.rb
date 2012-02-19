@@ -32,6 +32,10 @@ post '/rva/?' do
         { :address => email, :location => 'Work' }
       ]
     }
+
+  person.tag! "applicant"
+  
+  # Email whoever...
   
   # TODO: Add a note with the full contents of the application
   
