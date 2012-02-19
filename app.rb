@@ -34,9 +34,9 @@ post '/rva/?' do
     }
   person.tag! "applicant"
 
-  # Email whoever...
-  
-  # TODO: Add a note with the full contents of the application
+  person.add_note :body => "Remote Volunteer Application: \n\n ..."
+
+  # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
   body "#{HIGHRISE_URL}/people/#{person.id}"
   
