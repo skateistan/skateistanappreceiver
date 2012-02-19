@@ -33,7 +33,14 @@ post '/rva/?' do
       ]
     }
 
+  require 'pp'
+  pp person
+  
+  p "tag as applicant"
+
   person.tag! "applicant"
+
+  p "tagged as applicant"
   
   # Email whoever...
   
