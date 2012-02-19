@@ -28,7 +28,7 @@ post '/rva/?' do
   age = params['age']
   address = params['address']
   skate = params['skate']
-  interested = params['intersted']
+  interested = params['interested']
   help = params['help']
   hours = params['hours']
   months = params['months']

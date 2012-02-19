@@ -40,7 +40,14 @@ function sendRemoteVolunteerApplication() {
   var payload = {
     "firstname" : data[0][0],
     "lastname" : data[0][1],
-    "email" : data[0][3]
+    "email" : data[0][3],
+    "age" : data[0][2],
+    "address" : data[0][4],
+    "skate" : data[0][5],
+    "interested" : data[0][6],
+    "help" : data[0][7],
+    "hours" : data[0][8],
+    "months" : data[0][9]
   };
 
   // Send the application
