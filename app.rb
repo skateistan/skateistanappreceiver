@@ -25,22 +25,13 @@ post '/rva/?' do
   last_name = params['lastname']
   email = params['email']
   
-  person = Highrise::Person.create :first_name => first_name,
-    :last_name => last_name,
-    :contact_data => {
-      :email_addresses => [
-        { :address => email, :location => 'Work' }
-      ]
-    }
+  person = Highrise::Person.create :first_name => first_name, :last_name => last_name
 
-  require 'pp'
-  pp person
-  
-  p "tag as applicant"
+  puts "tag as applicant"
 
   person.tag! "applicant"
 
-  p "tagged as applicant"
+  puts "tagged as applicant"
   
   # Email whoever...
   
