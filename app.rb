@@ -8,6 +8,7 @@ configure do
   config = YAML.load_file('config.yaml') if !production?
   HIGHRISE_API_TOKEN = (production? ? ENV['HIGHRISE_API_TOKEN'] : config['HIGHRISE_API_TOKEN']) unless defined?(HIGHRISE_API_TOKEN)
   HIGHRISE_URL = (production? ? ENV['HIGHRISE_URL'] : config['HIGHRISE_URL']) unless defined?(HIGHRISE_URL)
+  Highrise::Base.format = :xml
   Highrise::Base.site = HIGHRISE_URL
   Highrise::Base.user = HIGHRISE_API_TOKEN
 end
