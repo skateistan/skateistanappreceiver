@@ -1,0 +1,114 @@
+<?php
+/**
+ * @file
+ * Implements modifications to the webform submission process for Skateistan
+ * intern/volunteer applications (two different webforms).
+ */
+
+function webform_skateistan_apps_webform_submission_insert($node, $submission) {
+  if ($node->nid == 20) { // Intern application form
+    _webform_skateistan_apps_submit_ia($node, $submission);
+  }
+  if ($node->nid == 33) { // Remote volunteer application form
+    _webform_skateistan_apps_submit_rva($node, $submission);
+  }
+}
+
+function _webform_skateistan_apps_submit_ia($node, $submission) {
+  $hook_url = "http://skateistanappreceiver.heroku.com/a/";
+  $mapping = _webform_skateistan_apps_webform_component_mapping($node);
+  
+  $name = $submission->data[$mapping["name"]]["value"][0];
+  $email = $submission->data[$mapping["e_mail"]]["value"][0];
+
+  $note = "Remote Volunteer Application: \n\n";
+  
+  // TODO: Finish note, and add file...
+
+  $data = array(
+    "name" => $name,
+    "email" => $email,
+    "note" => $note
+  );
+  // Send the application
+  $headers = array("Content-Type" => "application/x-www-form-urlencoded");
+  $response = drupal_http_request($hook_url, $headers, "POST", http_build_query($data, null, '&'));
+  $url = $response->data; // Expected to be: https://skateistan.highrisehq.com/people/{id}
+  _webform_skateistan_apps_send_ia_hr_email($url, $data);
+}
+
+function _webform_skateistan_apps_submit_rva($node, $submission) {
+  $hook_url = 'http://skateistanappreceiver.heroku.com/rva/';
+  $mapping = _webform_skateistan_apps_webform_component_mapping($node);
+  
+  $name = $submission->data[$mapping['name']]['value'][0];
+  $email = $submission->data[$mapping['e_mail']]['value'][0];
+  $address = $submission->data[$mapping['address_or_location']]['value'][0];
+  $age = $submission->data[$mapping['age']]['value'][0];
+  $skate = $submission->data[$mapping['are_you_a_skateboarder']]['value'][0];
+  $interest = $submission->data[$mapping['interest']]['value'][0];
+  $help = $submission->data[$mapping['help']]['value'][0];
+  $hours = $submission->data[$mapping['hours']]['value'][0];
+  $months = $submission->data[$mapping['months']]['value'][0];
+
+  $note = "Remote Volunteer Application: \n\n";
+  $note .= "Name: " . $name . "\n\n";
+  $note .= "Email: " . $email . "\n\n";
+  $note .= "Address:\n" . $address . "\n\n";
+  $note .= "Age: " . $age . "\n\n";
+  $note .= "Are you a skateboarder? " . $skate . "\n\n";
+  $note .= "Why are you interested in the Skateistan project?\n" . $interest . "\n\n";
+  $note .= "How could you help Skateistan from your current location?\n" . $help . "\n\n";
+  $note .= "How many hours a week could you to dedicate to a remote volunteer position?\n" . $hours . "\n\n";
+  $note .= "How many months could you potentially dedicate to a remote volunteer position?\n" . $months . "\n";
+
+  $data = array(
+    "name" => $name,
+    "email" => $email,
+    "note" => $note
+  );
+  // Send the application
+  $headers = array('Content-Type' => 'application/x-www-form-urlencoded');
+  $response = drupal_http_request($hook_url, $headers, 'POST', http_build_query($data, null, '&'));
+  $url = $response->data; // Expected to be: https://skateistan.highrisehq.com/people/{id}
+  _webform_skateistan_apps_send_rva_hr_email($url, $data);
+}
+
+function _webform_skateistan_apps_send_rva_hr_email($url, $data) {
+  $from_address = "hr@skateistan.org";
+  $to_address = "james@skateistan.org"; //"hr@skateistan.org";
+  $subject = "Remote Volunteer Application";
+  $message = "Remote Volunteer Application submitted by " . $data["name"] . ":\n\n";
+  $message .= "Applicant has been saved in Highrise: " . $url . "\n\n";
+  $message .= $data["note"] . "\n";
+  $params["subject"] = $subject;
+  $params["body"] = $message;
+  drupal_mail("webform_skateistan_apps", "rva_hr", $to_address, language_default(), $params, $from_address);
+}
+
+function _webform_skateistan_apps_send_ia_hr_email($url, $data) {
+  $from_address = "hr@skateistan.org";
+  $to_address = "james@skateistan.org"; //"hr@skateistan.org";
+  $subject = "Intern Application";
+  $message = "Intern Application submitted by " . $data["name"] . ":\n\n";
+  $message .= "Applicant has been saved in Highrise: " . $url . "\n\n";
+  $message .= $data["note"] . "\n";
+  $params["subject"] = $subject;
+  $params["body"] = $message;
+  drupal_mail("webform_skateistan_apps", "ia_hr", $to_address, language_default(), $params, $from_address);
+}
+
+function webform_skateistan_apps_mail($key, &$message, $params) {
+  $message["subject"] = $params["subject"];
+  $message["body"][] = $params["body"];
+}
+
+function _webform_skateistan_apps_webform_component_mapping($node) {
+  $mapping = array();
+  $components = $node->webform["components"];
+  foreach ($components as $i => $component) {
+    $key = $component["form_key"];
+    $mapping[$key] = $i;
+  }
+  return $mapping;
+}
