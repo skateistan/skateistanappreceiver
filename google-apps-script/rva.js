@@ -38,7 +38,6 @@ function sendRemoteVolunteerApplication() {
   var lr = form.getLastRow();
   var data = form.getRange(lr, 2, 1, 10).getValues();
   
-  // TODO: Grab headings from the spreadsheet rather than hard-coding them here.
   var note = "Remote Volunteer Application: \n\n";
   note += "Name: " + data[0][0] + " " + data[0][1] + "\n\n";
   note += "Email: " + data[0][3] + "\n\n";

@@ -15,14 +15,13 @@ end
 
 # Receive intern application
 post '/a/?' do
-  first_name = params['firstname']
-  last_name = params['lastname']
+  name = params['name']
   email = params['email']
   note = params['note']
   
-  # TODO: Deal with cv file attachment 
+  # TODO: Deal with cv file attachment
   
-  person = Highrise::Person.create :first_name => first_name, :last_name => last_name,
+  person = Highrise::Person.create :name => name,
     :contact_data => {
       :email_addresses => [
         { :address => email, :location => 'Home' }
@@ -38,12 +37,11 @@ end
 
 # Receive remote volunteer application
 post '/rva/?' do
-  first_name = params['firstname']
-  last_name = params['lastname']
+  name = params['name']
   email = params['email']
   note = params['note']
   
-  person = Highrise::Person.create :first_name => first_name, :last_name => last_name,
+  person = Highrise::Person.create :name => name,
     :contact_data => {
       :email_addresses => [
         { :address => email, :location => 'Home' }
