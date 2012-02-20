@@ -6,4 +6,4 @@ Skateistan receives intern/remote volunteer applications via its Drupal-powered 
 
 This Sinatra app receives the applications from the Skateistan website and uses the Highrise API to create contacts into Highrise.
 
-The webform__skateistan__apps directory is a Drupal module which provides webform submission functionality specific to the Skateistan application forms.
+The webform_skateistan_apps directory is a Drupal module which provides webform submission functionality specific to the Skateistan application forms.
