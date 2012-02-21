@@ -18,9 +18,7 @@ post '/a/?' do
   name = params['name']
   email = params['email']
   note = params['note']
-  
-  # TODO: Deal with cv file attachment
-  
+
   person = Highrise::Person.create :name => name,
     :contact_data => {
       :email_addresses => [
@@ -29,6 +27,10 @@ post '/a/?' do
     }
   person.tag! "intern applicant"
   person.add_note :body => note
+  
+  # TODO: Deal with cv file attachment
+  # http://developer.37signals.com/highrise/notes
+  # Unfortunate: "Note: Adding attachments to a note is not yet supported."
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
