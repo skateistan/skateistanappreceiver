@@ -18,6 +18,11 @@ post '/a/?' do
   name = params['name']
   email = params['email']
   note = params['note']
+  filename = File.join(Dir.pwd, "tmp", params['cv'][:filename])
+  # Write a temporary copy of the incoming cv file
+  File.open(filename, "w") do |f|
+    f.write(params['cv'][:tempfile].read)
+  end
 
   person = Highrise::Person.create :name => name,
     :contact_data => {
@@ -27,10 +32,11 @@ post '/a/?' do
     }
   person.tag! "intern applicant"
   person.add_note :body => note
-  
-  # TODO: Deal with cv file attachment
-  # http://developer.37signals.com/highrise/notes
-  # Unfortunate: "Note: Adding attachments to a note is not yet supported."
+
+  # TODO: Deal attach cv file to note
+  # Unfortunate: "Note: Adding attachments to a note is not yet supported." (http://developer.37signals.com/highrise/notes)
+  # This should work though:
+  # `curl -u "#{HIGHRISE_API_TOKEN}:x" #{HIGHRISE_URL}/notes.xml -d "note[subject_id]=#{person.id}&note[subject_type]=Party&note[body]=#{note}&note[files][]=#{filename}"`
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201

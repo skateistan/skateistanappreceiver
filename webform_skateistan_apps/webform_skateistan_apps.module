@@ -14,6 +14,39 @@ function webform_skateistan_apps_webform_submission_insert($node, $submission) {
   }
 }
 
+function _webform_skateistan_apps_hr_address() {
+  return "james@skateistan.org"; //"hr@skateistan.org";
+}
+
+function multipart_enc_text($name, $value){
+  return "Content-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n";
+}
+
+function multipart_enc_file($name, $path){
+  if (substr($path, 0, 1) == "@") $path = substr($path, 1);
+  $filename = basename($path);
+  $mimetype = "application/octet-stream";
+  $data = "Content-Disposition: form-data; name=\"$name\"; filename=\"$filename\"\r\n";
+  $data .= "Content-Transfer-Encoding: binary\r\n";
+  $data .= "Content-Type: $mimetype\r\n\r\n";
+  $data .= file_get_contents($path) . "\r\n";
+  return $data;
+}
+
+function http_build_multipart($boundary, $params) {
+  $output = "";
+  foreach ($params as $key => $value) {
+    $output .= "--$boundary\r\n";
+    if ($key == 'cv') {
+      $output .= multipart_enc_file($key, $value);
+    } else {
+      $output .= multipart_enc_text ($key, $value);
+    }
+  }
+  $output .= "--$boundary--";
+  return $output;
+}
+
 function _webform_skateistan_apps_submit_ia($node, $submission) {
   $hook_url = "http://skateistanappreceiver.heroku.com/a/";
   $mapping = _webform_skateistan_apps_webform_component_mapping($node);
@@ -40,28 +73,45 @@ function _webform_skateistan_apps_submit_ia($node, $submission) {
   $note .= "Do you have ramp building or trade skills?\n" . $submission->data[$mapping['ramp']]['value'][0] . "\n\n";
   $note .= "Do you have any medical condition that need to be considered before travelling to a developing country?\n" . $submission->data[$mapping['medical']]['value'][0] . "\n\n";
   $note .= "Timeline\n" . $submission->data[$mapping['timeline']]['value'][0] . "\n\n";
-  
+
   $attachments = array();
   foreach ($node->webform['components'] as $component) {
-    if ($component['type'] == 'file') {
-      $file = _webform_skateistan_apps_get_file($submission->data[$component['cid']]['value'][0]);
-      if ($file) {
-        $attachments[] = $file;
-      }
+    if ($component['type'] == 'file') { // cv file
+      $cv = _webform_skateistan_apps_get_file($submission->data[$component['cid']]['value'][0]);
+      if ($cv) $attachments[] = $cv;
     }
   }
 
   $data = array(
     "name" => $name,
     "email" => $email,
-    "note" => $note
+    "note" => $note,
+    "cv" => $cv->filepath
   );
-  
+
   // Send the application
-  $headers = array("Content-Type" => "application/x-www-form-urlencoded");
-  $response = drupal_http_request($hook_url, $headers, "POST", http_build_query($data, null, '&'));
+  $boundary = "d3J4Uq";
+  $headers = array("Content-Type" => "multipart/form-data; boundary=$boundary");
+  $response = drupal_http_request($hook_url, $headers, "POST", http_build_multipart($boundary, $data));
   $url = $response->data; // Expected to be: https://skateistan.highrisehq.com/people/{id}
   _webform_skateistan_apps_send_ia_hr_email($url, $data, $attachments);
+}
+
+function _webform_skateistan_apps_send_ia_hr_email($url, $data, $attachments) {
+  $from_address = _webform_skateistan_apps_hr_address();
+  $to_address = _webform_skateistan_apps_hr_address();
+  $subject = "Intern Application";
+  $message = "Intern Application submitted by " . $data["name"] . ":\n\n";
+  $message .= "Applicant has been saved in Highrise: " . $url . "\n\n";
+  $message .= $data["note"] . "\n";
+  $params["subject"] = $subject;
+  $params["body"] = $message;
+  $params['attachments'] = $attachments;
+  $message = drupal_mail("webform_skateistan_apps", "ia_hr", $to_address, language_default(), $params, $from_address, FALSE);
+
+  // Use mimemail to send this email, as it will contain an attachment
+  $message = mimemail($message['from'], $message['to'], $message['subject'], $message['body'],
+    TRUE, $message['headers'], $message['body'], $message['params']['attachments'], 'ia_hr');
 }
 
 function _webform_skateistan_apps_submit_rva($node, $submission) {
@@ -93,8 +143,8 @@ function _webform_skateistan_apps_submit_rva($node, $submission) {
 }
 
 function _webform_skateistan_apps_send_rva_hr_email($url, $data) {
-  $from_address = "hr@skateistan.org";
-  $to_address = "hr@skateistan.org"; //"james@skateistan.org";
+  $from_address = _webform_skateistan_apps_hr_address();
+  $to_address = _webform_skateistan_apps_hr_address();
   $subject = "Remote Volunteer Application";
   $message = "Remote Volunteer Application submitted by " . $data["name"] . ":\n\n";
   $message .= "Applicant has been saved in Highrise: " . $url . "\n\n";
@@ -102,23 +152,6 @@ function _webform_skateistan_apps_send_rva_hr_email($url, $data) {
   $params["subject"] = $subject;
   $params["body"] = $message;
   drupal_mail("webform_skateistan_apps", "rva_hr", $to_address, language_default(), $params, $from_address);
-}
-
-function _webform_skateistan_apps_send_ia_hr_email($url, $data, $attachments) {
-  $from_address = "hr@skateistan.org";
-  $to_address = "hr@skateistan.org"; //"james@skateistan.org";
-  $subject = "Intern Application";
-  $message = "Intern Application submitted by " . $data["name"] . ":\n\n";
-  $message .= "Applicant has been saved in Highrise: " . $url . "\n\n";
-  $message .= $data["note"] . "\n";
-  $params["subject"] = $subject;
-  $params["body"] = $message;
-  $params['attachments'] = $attachments;
-  $message = drupal_mail("webform_skateistan_apps", "ia_hr", $to_address, language_default(), $params, $from_address, FALSE);
-
-  // Use mimemail to send this email, as it will contain an attachment
-  $message = mimemail($message['from'], $message['to'], $message['subject'], $message['body'],
-    TRUE, $message['headers'], $message['body'], $message['params']['attachments'], 'ia_hr');
 }
 
 function webform_skateistan_apps_mail($key, &$message, $params) {
