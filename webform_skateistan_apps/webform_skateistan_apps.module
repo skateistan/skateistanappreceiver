@@ -15,7 +15,7 @@ function webform_skateistan_apps_webform_submission_insert($node, $submission) {
 }
 
 function _webform_skateistan_apps_hr_address() {
-  return "james@skateistan.org"; //"hr@skateistan.org";
+  return "hr@skateistan.org";
 }
 
 function multipart_enc_text($name, $value){
