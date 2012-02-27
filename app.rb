@@ -5,6 +5,7 @@ require 'yaml' if development?
 require 'highrise'
 
 configure do
+  require 'newrelic_rpm' if production?
   config = YAML.load_file('config.yaml') if !production?
   HIGHRISE_API_TOKEN = (production? ? ENV['HIGHRISE_API_TOKEN'] : config['HIGHRISE_API_TOKEN']) unless defined?(HIGHRISE_API_TOKEN)
   HIGHRISE_URL = (production? ? ENV['HIGHRISE_URL'] : config['HIGHRISE_URL']) unless defined?(HIGHRISE_URL)
