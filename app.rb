@@ -14,6 +14,10 @@ configure do
   Highrise::Base.user = HIGHRISE_API_TOKEN
 end
 
+get '/' do
+  "Skateistan application receiver. Nothing to see here. :)"
+end
+
 # Receive intern application
 post '/a/?' do
   name = params['name']
