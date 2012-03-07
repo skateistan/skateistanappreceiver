@@ -23,13 +23,17 @@ post '/a/?' do
   name = params['name']
   email = params['email']
   note = params['note']
+  skills = params['skills']
 
   person = Highrise::Person.create :name => name,
     :contact_data => {
       :email_addresses => [
         { :address => email, :location => 'Home' }
       ]
-    }
+    },
+    :subject_datas => [
+      { :subject_field_id => 535652, :value => skills } # Skills
+    ]
   person.tag! "intern applicant"
   person.add_note :body => note
 
