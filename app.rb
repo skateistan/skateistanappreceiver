@@ -3,15 +3,21 @@ require 'sinatra' unless defined?(Sinatra)
 require "sinatra/reloader" if development?
 require 'yaml' if development?
 require 'highrise'
+require 'createsend'
 
 configure do
   require 'newrelic_rpm' if production?
   config = YAML.load_file('config.yaml') if !production?
+
   HIGHRISE_API_TOKEN = (production? ? ENV['HIGHRISE_API_TOKEN'] : config['HIGHRISE_API_TOKEN']) unless defined?(HIGHRISE_API_TOKEN)
   HIGHRISE_URL = (production? ? ENV['HIGHRISE_URL'] : config['HIGHRISE_URL']) unless defined?(HIGHRISE_URL)
   Highrise::Base.format = :xml
   Highrise::Base.site = HIGHRISE_URL
   Highrise::Base.user = HIGHRISE_API_TOKEN
+  
+  CAMPAIGN_MONITOR_API_KEY = (production? ? ENV['CAMPAIGN_MONITOR_API_KEY'] : config['CAMPAIGN_MONITOR_API_KEY']) unless defined?(CAMPAIGN_MONITOR_API_KEY)
+  CAMPAIGN_MONITOR_LIST_ID = (production? ? ENV['CAMPAIGN_MONITOR_LIST_ID'] : config['CAMPAIGN_MONITOR_LIST_ID']) unless defined?(CAMPAIGN_MONITOR_LIST_ID)
+  CreateSend.api_key CAMPAIGN_MONITOR_API_KEY
 end
 
 get '/' do
@@ -37,6 +43,9 @@ post '/a/?' do
   person.tag! "intern applicant"
   person.add_note :body => note
 
+  custom_fields = [{ :Key => 'type', :Value => 'ia' }]
+  CreateSend::Subscriber.add CAMPAIGN_MONITOR_LIST_ID, email, name, custom_fields, true
+
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
   body "#{HIGHRISE_URL}/people/#{person.id}"
@@ -56,6 +65,9 @@ post '/rva/?' do
     }
   person.tag! "remote applicant"
   person.add_note :body => note
+
+  custom_fields = [{ :Key => 'type', :Value => 'rva' }]
+  CreateSend::Subscriber.add CAMPAIGN_MONITOR_LIST_ID, email, name, custom_fields, true
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
