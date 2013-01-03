@@ -1,2 +1,4 @@
 HIGHRISE_API_TOKEN: 'Highrise API token'
 HIGHRISE_URL: 'https://account.highrisehq.com'
+CAMPAIGN_MONITOR_API_KEY: 'Campaign Monitor API key'
+CAMPAIGN_MONITOR_LIST_ID: 'Campaign Monitor List ID'
