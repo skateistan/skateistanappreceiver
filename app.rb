@@ -22,6 +22,7 @@ configure do
   CAMPAIGN_MONITOR_LIST_ID = (production? ? ENV['CAMPAIGN_MONITOR_LIST_ID'] : config['CAMPAIGN_MONITOR_LIST_ID']) unless defined?(CAMPAIGN_MONITOR_LIST_ID)
 end
 
+use Rack::Session::Cookie
 use OmniAuth::Builder do
   provider :createsend, CAMPAIGN_MONITOR_CLIENT_ID, CAMPAIGN_MONITOR_CLIENT_SECRET,
     :scope => 'ManageLists,ImportSubscribers'
