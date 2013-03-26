@@ -14,10 +14,9 @@ configure do
   Highrise::Base.format = :xml
   Highrise::Base.site = HIGHRISE_URL
   Highrise::Base.user = HIGHRISE_API_TOKEN
-  
+
   CAMPAIGN_MONITOR_API_KEY = (production? ? ENV['CAMPAIGN_MONITOR_API_KEY'] : config['CAMPAIGN_MONITOR_API_KEY']) unless defined?(CAMPAIGN_MONITOR_API_KEY)
   CAMPAIGN_MONITOR_LIST_ID = (production? ? ENV['CAMPAIGN_MONITOR_LIST_ID'] : config['CAMPAIGN_MONITOR_LIST_ID']) unless defined?(CAMPAIGN_MONITOR_LIST_ID)
-  CreateSend.api_key CAMPAIGN_MONITOR_API_KEY
 end
 
 get '/' do
@@ -44,7 +43,9 @@ post '/a/?' do
   person.add_note :body => note
 
   custom_fields = [{ :Key => 'type', :Value => 'ia' }]
-  CreateSend::Subscriber.add CAMPAIGN_MONITOR_LIST_ID, email, name, custom_fields, true
+  CreateSend::Subscriber.add(
+    {:api_key => CAMPAIGN_MONITOR_API_KEY}, CAMPAIGN_MONITOR_LIST_ID,
+    email, name, custom_fields, true)
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
@@ -67,7 +68,9 @@ post '/rva/?' do
   person.add_note :body => note
 
   custom_fields = [{ :Key => 'type', :Value => 'rva' }]
-  CreateSend::Subscriber.add CAMPAIGN_MONITOR_LIST_ID, email, name, custom_fields, true
+  CreateSend::Subscriber.add(
+    {:api_key => CAMPAIGN_MONITOR_API_KEY}, CAMPAIGN_MONITOR_LIST_ID,
+    email, name, custom_fields, true)
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
