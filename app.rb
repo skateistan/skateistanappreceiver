@@ -57,7 +57,7 @@ def add_cm_subscriber(email, name, custom_fields)
       auth, CAMPAIGN_MONITOR_LIST_ID, email, name, custom_fields, true)
     rescue CreateSend::ExpiredOAuthToken => eot
       access_token, expires_in, refresh_token =
-        CreateSend::CreateSend.new(auth).refresh_token
+        CreateSend::CreateSend.refresh_access_token auth[:refresh_token]
       ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'] = access_token
       auth[:access_token] = access_token
       retry unless (tries -= 1).zero?
