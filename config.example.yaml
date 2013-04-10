@@ -5,3 +5,4 @@ CAMPAIGN_MONITOR_CLIENT_SECRET: 'Client Secret of the Skateistan Online Applicat
 CAMPAIGN_MONITOR_ACCESS_TOKEN: 'Access token for accessing Skateistan Campaign Monitor account'
 CAMPAIGN_MONITOR_REFRESH_TOKEN: 'Refresh token for accessing Skateistan Campaign Monitor account'
 CAMPAIGN_MONITOR_LIST_ID: 'Campaign Monitor List ID'
+HEROKU_API_KEY: 'Your Heroku API key'

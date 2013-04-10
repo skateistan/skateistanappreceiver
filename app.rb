@@ -4,8 +4,10 @@ require 'yaml' if development?
 require 'highrise'
 require 'createsend'
 require 'omniauth-createsend'
+require 'heroku-api'
 
 configure do
+  heroku = Heroku::API.new # Assumes ENV['HEROKU_API_KEY'] is set
   require 'newrelic_rpm' if production?
   config = YAML.load_file('config.yaml') if !production?
 
@@ -58,7 +60,15 @@ def add_cm_subscriber(email, name, custom_fields)
     rescue CreateSend::ExpiredOAuthToken => eot
       access_token, expires_in, refresh_token =
         CreateSend::CreateSend.refresh_access_token auth[:refresh_token]
-      ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'] = access_token
+      # Doing `ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'] = access_token` here
+      # would not persist the environment variable, which would mean that
+      # we would end up refreshing the access token for every single request.
+      # So instead, we use the Heroku API to set CAMPAIGN_MONITOR_ACCESS_TOKEN.
+      # Persisting CAMPAIGN_MONITOR_ACCESS_TOKEN means that we only need to
+      # refresh tokens when the current access token has expired.
+      heroku.put_config_vars(
+        'skateistanappreceiver',
+        'CAMPAIGN_MONITOR_ACCESS_TOKEN' => access_token)
       auth[:access_token] = access_token
       retry unless (tries -= 1).zero?
       p "Error: #{eot}"
