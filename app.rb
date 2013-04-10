@@ -1,30 +1,27 @@
 require 'bundler/setup'
 require 'sinatra' unless defined?(Sinatra)
-require 'yaml' if development?
 require 'highrise'
 require 'createsend'
 require 'omniauth-createsend'
+require 'heroku-api'
+
+if development?
+  require 'dotenv'
+  Dotenv.load
+end
 
 configure do
   require 'newrelic_rpm' if production?
-  config = YAML.load_file('config.yaml') if !production?
 
-  HIGHRISE_API_TOKEN = (production? ? ENV['HIGHRISE_API_TOKEN'] : config['HIGHRISE_API_TOKEN']) unless defined?(HIGHRISE_API_TOKEN)
-  HIGHRISE_URL = (production? ? ENV['HIGHRISE_URL'] : config['HIGHRISE_URL']) unless defined?(HIGHRISE_URL)
   Highrise::Base.format = :xml
-  Highrise::Base.site = HIGHRISE_URL
-  Highrise::Base.user = HIGHRISE_API_TOKEN
-
-  CAMPAIGN_MONITOR_CLIENT_ID = (production? ? ENV['CAMPAIGN_MONITOR_CLIENT_ID'] : config['CAMPAIGN_MONITOR_CLIENT_ID']) unless defined?(CAMPAIGN_MONITOR_CLIENT_ID)
-  CAMPAIGN_MONITOR_CLIENT_SECRET = (production? ? ENV['CAMPAIGN_MONITOR_CLIENT_SECRET'] : config['CAMPAIGN_MONITOR_CLIENT_SECRET']) unless defined?(CAMPAIGN_MONITOR_CLIENT_SECRET)
-  CAMPAIGN_MONITOR_ACCESS_TOKEN = (production? ? ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'] : config['CAMPAIGN_MONITOR_ACCESS_TOKEN']) unless defined?(CAMPAIGN_MONITOR_ACCESS_TOKEN)
-  CAMPAIGN_MONITOR_REFRESH_TOKEN = (production? ? ENV['CAMPAIGN_MONITOR_REFRESH_TOKEN'] : config['CAMPAIGN_MONITOR_REFRESH_TOKEN']) unless defined?(CAMPAIGN_MONITOR_REFRESH_TOKEN)
-  CAMPAIGN_MONITOR_LIST_ID = (production? ? ENV['CAMPAIGN_MONITOR_LIST_ID'] : config['CAMPAIGN_MONITOR_LIST_ID']) unless defined?(CAMPAIGN_MONITOR_LIST_ID)
+  Highrise::Base.site = ENV['HIGHRISE_URL']
+  Highrise::Base.user = ENV['HIGHRISE_API_TOKEN']
 end
 
 use Rack::Session::Cookie
 use OmniAuth::Builder do
-  provider :createsend, CAMPAIGN_MONITOR_CLIENT_ID, CAMPAIGN_MONITOR_CLIENT_SECRET,
+  provider :createsend, ENV['CAMPAIGN_MONITOR_CLIENT_ID'],
+    ENV['CAMPAIGN_MONITOR_CLIENT_SECRET'],
     :scope => 'ManageLists,ImportSubscribers'
 end
 
@@ -35,7 +32,7 @@ get '/auth/:provider/callback' do
   refresh_token = request.env['omniauth.auth']['credentials']['refresh_token']
 
   response = "<pre>"
-  response << "You're authenticated - Here's what you need:<br/><br/>"
+  response << "You're authenticated - here's what you need:<br/><br/>"
   response << "access token: #{access_token}<br/>"
   response << "refresh token: #{refresh_token}<br/>"
   response << "</pre>"
@@ -48,17 +45,26 @@ end
 
 def add_cm_subscriber(email, name, custom_fields)
   auth = {
-    :access_token => CAMPAIGN_MONITOR_ACCESS_TOKEN,
-    :refresh_token => CAMPAIGN_MONITOR_REFRESH_TOKEN
+    :access_token => ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'],
+    :refresh_token => ENV['CAMPAIGN_MONITOR_REFRESH_TOKEN']
   }
   begin
     tries ||= 2
     CreateSend::Subscriber.add(
-      auth, CAMPAIGN_MONITOR_LIST_ID, email, name, custom_fields, true)
+      auth, ENV['CAMPAIGN_MONITOR_LIST_ID'], email, name, custom_fields, true)
     rescue CreateSend::ExpiredOAuthToken => eot
       access_token, expires_in, refresh_token =
         CreateSend::CreateSend.refresh_access_token auth[:refresh_token]
-      ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'] = access_token
+      # Doing `ENV['CAMPAIGN_MONITOR_ACCESS_TOKEN'] = access_token` here
+      # would not persist the environment variable, which would mean that
+      # we would end up refreshing the access token for every single request.
+      # So instead, we use the Heroku API to set CAMPAIGN_MONITOR_ACCESS_TOKEN.
+      # Persisting CAMPAIGN_MONITOR_ACCESS_TOKEN means that we only need to
+      # refresh tokens when the current access token has expired.
+      heroku = Heroku::API.new # Assumes ENV['HEROKU_API_KEY'] is set
+      heroku.put_config_vars(
+        'skateistanappreceiver',
+        'CAMPAIGN_MONITOR_ACCESS_TOKEN' => access_token)
       auth[:access_token] = access_token
       retry unless (tries -= 1).zero?
       p "Error: #{eot}"
@@ -89,7 +95,7 @@ post '/a/?' do
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
-  body "#{HIGHRISE_URL}/people/#{person.id}"
+  body "#{ENV['HIGHRISE_URL']}/people/#{person.id}"
 end
 
 # Receive remote volunteer application
@@ -112,5 +118,5 @@ post '/rva/?' do
 
   # Respond with 201 Created, and set the body as the applicant's Highrise URL
   status 201
-  body "#{HIGHRISE_URL}/people/#{person.id}"
+  body "#{ENV['HIGHRISE_URL']}/people/#{person.id}"
 end

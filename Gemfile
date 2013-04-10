@@ -6,3 +6,8 @@ gem 'highrise', '~> 3.0'
 gem 'createsend', '~> 3.1'
 gem 'omniauth-createsend', '~> 1.0'
 gem 'newrelic_rpm', '~> 3.6'
+gem 'heroku-api', '~> 0.3'
+
+group :development, :test do
+  gem 'dotenv'
+end
