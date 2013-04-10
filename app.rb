@@ -11,7 +11,6 @@ if development?
 end
 
 configure do
-  heroku = Heroku::API.new # Assumes ENV['HEROKU_API_KEY'] is set
   require 'newrelic_rpm' if production?
 
   Highrise::Base.format = :xml
@@ -62,6 +61,7 @@ def add_cm_subscriber(email, name, custom_fields)
       # So instead, we use the Heroku API to set CAMPAIGN_MONITOR_ACCESS_TOKEN.
       # Persisting CAMPAIGN_MONITOR_ACCESS_TOKEN means that we only need to
       # refresh tokens when the current access token has expired.
+      heroku = Heroku::API.new # Assumes ENV['HEROKU_API_KEY'] is set
       heroku.put_config_vars(
         'skateistanappreceiver',
         'CAMPAIGN_MONITOR_ACCESS_TOKEN' => access_token)
