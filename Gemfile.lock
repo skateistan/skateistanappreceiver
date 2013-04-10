@@ -15,6 +15,7 @@ GEM
       hashie (>= 1.2, < 3)
       httparty (~> 0.10)
       json
+    dotenv (0.6.0)
     excon (0.20.1)
     faraday (0.8.7)
       multipart-post (~> 1.1)
@@ -64,6 +65,7 @@ PLATFORMS
 
 DEPENDENCIES
   createsend (~> 3.1)
+  dotenv
   heroku-api (~> 0.3)
   highrise (~> 3.0)
   newrelic_rpm (~> 3.6)
