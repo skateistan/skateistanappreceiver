@@ -1,4 +1,2 @@
-.DS_Store
-.bundle/*
+.bundle
 .env
-

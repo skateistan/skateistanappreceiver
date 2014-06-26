@@ -5,11 +5,6 @@ require 'createsend'
 require 'omniauth-createsend'
 require 'heroku-api'
 
-if development?
-  require 'dotenv'
-  Dotenv.load
-end
-
 configure do
   require 'newrelic_rpm' if production?
 
@@ -103,7 +98,7 @@ post '/rva/?' do
   name = params['name']
   email = params['email']
   note = params['note']
-  
+
   person = Highrise::Person.create :name => name,
     :contact_data => {
       :email_addresses => [
