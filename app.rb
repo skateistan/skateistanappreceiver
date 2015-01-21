@@ -1,16 +1,11 @@
 require "bundler/setup"
 require "sinatra" unless defined?(Sinatra)
-require "highrise"
 require "createsend"
 require "omniauth-createsend"
 require "heroku-api"
 
 configure do
   require "newrelic_rpm" if production?
-
-  Highrise::Base.format = :xml
-  Highrise::Base.site = ENV["HIGHRISE_URL"]
-  Highrise::Base.user = ENV["HIGHRISE_API_TOKEN"]
 end
 
 use Rack::Session::Cookie
@@ -73,24 +68,11 @@ post "/a/?" do
   note = params["note"]
   skills = params["skills"]
 
-  person = Highrise::Person.create :name => name,
-    :contact_data => {
-      :email_addresses => [
-        { :address => email, :location => "Home" }
-      ]
-    },
-    :subject_datas => [
-      { :subject_field_id => 535652, :value => skills } # Skills
-    ]
-  person.tag! "intern applicant"
-  person.add_note :body => note
-
   custom_fields = [{ :Key => "type", :Value => "ia" }]
   add_cm_subscriber email, name, custom_fields
 
-  # Respond with 201 Created, and set the body as the applicant's Highrise URL
+  # Respond with 201 Created
   status 201
-  body "#{ENV['HIGHRISE_URL']}/people/#{person.id}"
 end
 
 # Receive remote volunteer application
@@ -99,19 +81,9 @@ post "/rva/?" do
   email = params["email"]
   note = params["note"]
 
-  person = Highrise::Person.create :name => name,
-    :contact_data => {
-      :email_addresses => [
-        { :address => email, :location => "Home" }
-      ]
-    }
-  person.tag! "remote applicant"
-  person.add_note :body => note
-
   custom_fields = [{ :Key => "type", :Value => "rva" }]
   add_cm_subscriber email, name, custom_fields
 
-  # Respond with 201 Created, and set the body as the applicant's Highrise URL
+  # Respond with 201 Created
   status 201
-  body "#{ENV['HIGHRISE_URL']}/people/#{person.id}"
 end
