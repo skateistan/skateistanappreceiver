@@ -63,10 +63,11 @@ end
 
 # Receive intern application
 post "/a/?" do
-  name = params["name"]
-  email = params["email"]
-  note = params["note"]
-  skills = params["skills"]
+  info = Hash[params.map { |k, v| [k.gsub("amp;", ""), v] }]
+  name = info["name"]
+  email = info["email"]
+  note = info["note"]
+  skills = info["skills"]
 
   custom_fields = [{ :Key => "type", :Value => "ia" }]
   add_cm_subscriber email, name, custom_fields
@@ -77,9 +78,10 @@ end
 
 # Receive remote volunteer application
 post "/rva/?" do
-  name = params["name"]
-  email = params["email"]
-  note = params["note"]
+  info = Hash[params.map { |k, v| [k.gsub("amp;", ""), v] }]
+  name = info["name"]
+  email = info["email"]
+  note = info["note"]
 
   custom_fields = [{ :Key => "type", :Value => "rva" }]
   add_cm_subscriber email, name, custom_fields
