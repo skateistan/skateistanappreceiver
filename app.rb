@@ -4,6 +4,9 @@ require "createsend"
 require "omniauth-createsend"
 require "heroku-api"
 
+enable :sessions
+set :session_secret, ENV["SESSION_SECRET"]
+
 configure do
   require "newrelic_rpm" if production?
 end
