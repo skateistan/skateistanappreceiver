@@ -11,7 +11,6 @@ configure do
   require "newrelic_rpm" if production?
 end
 
-use Rack::Session::Cookie
 use OmniAuth::Builder do
   provider :createsend, ENV["CAMPAIGN_MONITOR_CLIENT_ID"],
     ENV["CAMPAIGN_MONITOR_CLIENT_SECRET"],
