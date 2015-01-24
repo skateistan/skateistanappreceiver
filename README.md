@@ -1,5 +1,6 @@
-# skateistanappreceiver
+# Skateistan Application Receiver
 
-Skateistan receives intern/remote volunteer applications via its Drupal-powered website.
+Skateistan receives [international](http://skateistan.org/international-volunteer-application) and [remote](http://www.skateistan.org/volunteer-from-your-home-country) volunteer applications via its website.
 
-This app receives intern/remote volunteer applications from the Skateistan website and uses the Campaign Monitor API to add subscribers in Campaign Monitor
+This app is a webhook receiver which receives these applications from the Skateistan website and currently uses the Campaign Monitor API to add subscribers to a list in Skateistan's Campaign Monitor account.
+
